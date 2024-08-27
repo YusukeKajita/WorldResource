@@ -5,17 +5,14 @@ export type StateOfMatter = "solid" | "liquid" | "air";
 // すべての物体
 export class WRMatter extends WRNoun {
   mass: number;
-  weight: number;
   state: StateOfMatter;
   constructor(
     mass: number = 0,
-    weight: number = 0,
     name = "",
     state: StateOfMatter
   ) {
     super(name);
     this.mass = mass;
-    this.weight = weight;
     this.state = state;
   }
 }
@@ -30,10 +27,9 @@ export class WRObject extends WRMatter {
     position = new WRPosition(),
     rotation = new WRRotation(),
     mass = 0,
-    weight = 0,
     name = ""
   ) {
-    super(mass, weight, name, "solid");
+    super(mass, name, "solid");
     this.size = size;
     this.position = position;
     this.rotation = rotation;
@@ -44,21 +40,11 @@ export class WRObject extends WRMatter {
 export class WRLiquid extends WRMatter {
   
   position: WRPosition;
-  constructor(position = new WRPosition(), mass = 0, weight = 0, name = "") {
-    super(mass, weight, name, "liquid");
+  constructor(position = new WRPosition(), mass = 0, name = "") {
+    super(mass, name, "liquid");
     this.position = position;
   }
 
-  
-
-  // 何かを入れてまぜる
-  blend(matter: WRMatter): WRMatter {
-    // 同じものの場合増えるだけ
-    if(this.name == matter.name){
-      return new WRLiquid(this.position, this.mass + matter.mass, this.weight + matter.weight, this.name);
-    }
-
-  }
 }
 
 export class WRRotation {
@@ -85,29 +71,20 @@ export class WRContainer extends WRObject {
   // 現在体積
   massFill: number;
 
-  // 許容重量
-  weightCapacity: number;
-  // 現在重量
-  weightFill: number;
-
   // 液体が入っているか
   isLiquidfilled: boolean;
 
   constructor(
     massCapacity: number = 0,
-    weightCapacity: number = 0,
     size = new WRVector(),
     position = new WRPosition(),
     rotation = new WRRotation(),
     mass = 0,
-    weight = 0,
     name = ""
   ) {
-    super(size, position, rotation, mass, weight, name);
-    this.weightCapacity = weightCapacity;
+    super(size, position, rotation, mass, name);
     this.massCapacity = massCapacity;
     this.contents = [];
-    this.weightFill = 0;
     this.massFill = 0;
     this.isLiquidfilled = false;
   }
@@ -116,24 +93,39 @@ export class WRContainer extends WRObject {
     if (matter.mass + this.massFill > this.massCapacity) {
       return false;
     }
-    if (matter.weight + this.weightFill > this.weightCapacity) {
-      return false;
-    }
-    this.weightFill += matter.weight;
     this.massFill += matter.mass;
     this.contents.push(matter);
     if (matter.state == "liquid") {
       if (this.isLiquidfilled) {
+        // TODO:液体がすでに入っていた場合
       } else {
         this.isLiquidfilled = true;
       }
     }
     return true;
   }
-  out(index: number): WRMatter | undefined {
+  out(index: number, mass:number | undefined): WRMatter | undefined {
     let content: WRMatter | undefined = this.contents.at(index);
     if (content) {
-      this.contents.splice(index, 1);
+      switch(content.state){
+        case "solid":
+          this.contents.splice(index, 1);
+          return content;
+        case "liquid":
+          // 取り出し指定
+          const liquidContent = content as WRLiquid;
+          if(mass && mass > 0 && liquidContent.mass < mass){
+            liquidContent.mass -= mass;
+            return new WRLiquid(liquidContent.position, mass, liquidContent.name);
+          }
+          // 指定なしまたは全だし
+          
+          this.contents.splice(index, 1);
+          return content;
+        
+        case "air":
+          // TODO:air define
+      }
     }
     return content;
   }

@@ -1,0 +1,17 @@
+[
+  {
+    "ruleType": "blend",
+    "rowList": [
+      {"name": "water","ratio": 1},
+      {"name": "solt","ratio": 0.05}
+    ],
+    "resultList": [
+      {"name": "seawater","ratio": 1.05}
+    ]
+  },
+  {
+    "ruleType": "heat",
+    "rowList": [{ "name": "seawater", "ratio": 1.05 }],
+    "resultList": [{"name":"solt", "ratio":0.05}]
+  }
+]
