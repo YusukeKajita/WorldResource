@@ -12,3 +12,7 @@ export class WRRule{
         return JSON.parse(jsonText);
     }
 }
+
+export class WRBlendRule extends WRRule{
+    
+}
